@@ -36,7 +36,7 @@ class ReserveTable(APIView):
 		date = datetime.fromisoformat(data['date'])
 		booking = self.model.objects.filter(date=date)
 		print(booking)
-		serializer = self.serializer_class(booking, many=True)
+		serializer = BookingSerializer(booking, many=True)
 		print(serializer.data)
 		return Response(serializer.data, status=status.HTTP_200_OK)
 

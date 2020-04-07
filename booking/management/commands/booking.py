@@ -25,6 +25,7 @@ class Command(BaseCommand):
 
 		for day in week:
 			for table in tables:
+				print(table, day)
 				kwargs = {
 					'table': table,
 					'date': day,

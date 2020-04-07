@@ -120,7 +120,7 @@ class Table(models.Model):
 class Booking(models.Model):
 
 	table = models.ForeignKey(Table, on_delete=models.CASCADE, null=True, blank=True)
-	date = models.DateField(auto_now_add=True)
+	date = models.DateField(null=True, blank=True)
 	reserved = models.BooleanField(default=False)
 
 	def __str__(self):

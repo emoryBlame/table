@@ -7,17 +7,21 @@ class TableSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Table
-		fields = ('__all__')
+		fields = (
+			'number',
+			'places',
+			'shape',
+			)
 
 
 class BookingSerializer(serializers.ModelSerializer):
 
-	table = TableSerializer()
+	#table = TableSerializer()
 
 	class Meta:
 		model = Booking
 		fields = (
 			'table',
 			'date',
-			'reserved'
+			'reserved',
 			)
