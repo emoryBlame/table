@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Booking</title>
+
+	<!-- Bootstrap -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<!-- End Bootstrap -->
+
+</head>
+<body>
+	
+	<div class="container">
+		<div class="row">
+			<div class="col-4">
+				<h1>Booking</h1>
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2>Choose a date:</h2>
+				<input type="date" id="datePicker" onchange="LoadBooking(this);" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12 text-center">
+				<!-- {{ booking }} -->
+				<div class="" style="position: relative; width: 1000px; height: 1000px; background-color: grey;">
+					{% for book in booking %}
+						<div class="text-center" id="table{{book.table.pk}}" onclick="reserveTable({{book.table.id}}, {{book.date}});" style="position: absolute; width: {{ book.table.width }}%; height: {{ book.table.length }}%; margin-top: {{ book.table.vertical }}%; margin-left: {{ book.table.horizontal }}%; {% if book.reserved %} background-color: red; {% else %} background-color: green; {% endif %} ">
+							{{book.table.number}}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		document.getElementById('datePicker').valueAsDate = new Date();
+
+		async function LoadBooking(datePicker){
+			date = datePicker.value;
+			console.log(date);
+			url = "{% url 'booking:reserve' %}"+"?date="+date;
+			console.log(url);
+			let response = await fetch(url);
+			let data = await response.json;
+			console.log(data);
+		}
+	</script>
+</body>
+</html>
