@@ -21,7 +21,13 @@
 			</div>
 		</div>
 	</div>
-
+	<div class="container">
+		<div class="row" id="Form" style="display: none;">
+			<input id="name" type="text" placeholder="Name">
+			<input id="email" type="email" placeholder="Email">
+			<input type="button" onclick="reserveTable();" value="Send">
+		</div>
+	</div>
 	<div class="container">
 		<div class="row">
 			<div class="col-12 text-center">
@@ -33,8 +39,16 @@
 			<div class="col-12 text-center">
 				<!-- {{ booking }} -->
 				<div class="" style="position: relative; width: 1000px; height: 1000px; background-color: grey;">
+					<script>
+						reserved_tables = [];
+					</script>
 					{% for book in booking %}
-						<div class="text-center" id="table{{book.table.pk}}" onclick="reserveTable({{book.table.id}}, {{book.date}});" style="position: absolute; width: {{ book.table.width }}%; height: {{ book.table.length }}%; margin-top: {{ book.table.vertical }}%; margin-left: {{ book.table.horizontal }}%; {% if book.reserved %} background-color: red; {% else %} background-color: green; {% endif %} ">
+						{% if book.reserved %}
+							<script>
+								reserved_tables.push({{book.table.id}});
+							</script>
+						{% endif %}
+						<div class="text-center" id="table{{book.table.pk}}" onclick="ChooseTables({{book.table.id}});" style="position: absolute; width: {{ book.table.width }}%; height: {{ book.table.length }}%; margin-top: {{ book.table.vertical }}%; margin-left: {{ book.table.horizontal }}%; {% if book.reserved %} background-color: red; {% else %} background-color: green; {% endif %} ">
 							{{book.table.number}}
 						</div>
 					{% endfor %}
@@ -44,15 +58,75 @@
 	</div>
 	<script>
 		document.getElementById('datePicker').valueAsDate = new Date();
-
 		async function LoadBooking(datePicker){
 			date = datePicker.value;
-			console.log(date);
-			url = "{% url 'booking:reserve' %}"+"?date="+date;
-			console.log(url);
+			url = "{% url 'booking:api-list' %}"+"?date="+date;
 			let response = await fetch(url);
-			let data = await response.json;
-			console.log(data);
+			let data = await response.json();
+			reserved_tables = [];
+			for (const index in data) {
+				table = data[index];
+				let color;
+				if (table['reserved']) {
+					color = "red";
+					reserved_tables.push(table['table']);
+				} else {
+					color = "green";
+				}
+				document.getElementById("table"+table['table']).style.backgroundColor = color;
+			}
+			console.log(reserved_tables);
+		}
+
+		var tables = []
+		function ChooseTables(table_id) {
+			if (reserved_tables.includes(table_id)) {
+				alert("Table already reserved");
+				return false;
+			}
+			if (tables.includes(table_id)) {
+				tables = tables.filter(function(value, index, arr){ return value != table_id;});
+				document.getElementById("table"+table_id).style.backgroundColor = 'green';	
+			} else {
+				tables.push(table_id);
+				document.getElementById("table"+table_id).style.backgroundColor = 'blue';
+			}
+
+			if (tables.length == 0) {
+				document.getElementById("Form").style.display = "none";
+			} else {
+				document.getElementById("Form").style.display = "block";
+			}
+		}
+
+		async function reserveTable(){
+			date = document.getElementById("datePicker").value;
+			url = "{% url 'booking:reserve' %}";
+			name = document.getElementById("name").value;
+			email = document.getElementById("email").value;
+			let response = await fetch(url, {
+				method: 'POST',
+				headers: {
+				    'Content-Type': 'application/json;charset=utf-8'
+				},
+				body: JSON.stringify({
+					date: date,
+					tables: tables,
+					name: name,
+					email: email
+				})
+			});
+			let status = await response.status;
+			if (status == 200) {
+				for (const index in tables) {
+					table = tables[index];
+					document.getElementById("table"+table).style.backgroundColor = 'red';
+				}
+				alert("Success");
+				document.getElementById("Form").style.display = "none";
+			} else {
+				alert("Something goes wrong!");
+			}
 		}
 	</script>
 </body>

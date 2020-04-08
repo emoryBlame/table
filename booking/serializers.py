@@ -17,6 +17,7 @@ class TableSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
 
 	#table = TableSerializer()
+	reserved = serializers.BooleanField(required=False)
 
 	class Meta:
 		model = Booking

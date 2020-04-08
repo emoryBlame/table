@@ -6,10 +6,13 @@ from django.views.generic import ListView
 
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView, UpdateAPIView
 
 from booking.models import Table, Booking
 from booking.serializers import TableSerializer, BookingSerializer
+from booking.utils import send_mail
 
 
 # Create your views here.
@@ -26,20 +29,32 @@ class BookingListView(ListView):
 		return self.model.objects.filter(date=today)
 
 
-class ReserveTable(APIView):
+class BookingListAPIView(ListAPIView):
 
 	model = Booking
 	serializer_class = BookingSerializer
+	renderer_classes = [JSONRenderer]
 
-	def get(self, request, format=None):
-		data = request.query_params
+	def get_queryset(self):
+		data = self.request.query_params
 		date = datetime.fromisoformat(data['date'])
-		booking = self.model.objects.filter(date=date)
-		print(booking)
-		serializer = BookingSerializer(booking, many=True)
-		print(serializer.data)
-		return Response(serializer.data, status=status.HTTP_200_OK)
+		return self.model.objects.filter(date=date)
+
+
+class ReserveTable(APIView):
+
+	model = Booking
 
 	def post(self, request, format=None):
-		return Response(status=status.HTTP_200_OK)
+		data = request.data
+		date = datetime.fromisoformat(data['date'])
+		tables = data['tables']
+		queryset = self.model.objects.filter(date=date, table__id__in=tables)
+		result = "Creadentials error"
+		if queryset:
+			queryset.update(**{"reserved": True})
+			send_mail(data['name'], data['email'])
+			result = "OK"
+			return Response({result: result}, status=status.HTTP_200_OK)
 
+		return Response({result: result}, status=status.HTTP_400_BAD_REQUEST)
